@@ -1,7 +1,7 @@
 Shapeme -- A mess of a program to evolve images using simulated annealing.
 ===
 
-This is some code I wrote 6 years ago and never released, just after I saw [this insipring blog post of 2008](http://rogeralsing.com/2008/12/07/genetic-programming-evolution-of-mona-lisa/). I remember my son having tons of fun with this, so while I rarely touched the code at all, I ran it multiple times for him, and I plan to do it again when my daugher is old enough to understand it.
+This is some code I wrote 6 years ago and never released, just after I saw [this insipring blog post of 2008](http://rogeralsing.com/2008/12/07/genetic-programming-evolution-of-mona-lisa/). I remember my son having tons of fun with this, so while I rarely touched the code at all, I ran it multiple times for him, and I plan to do it again when my daughter is old enough to understand it.
 
 So what it does?
 
