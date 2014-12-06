@@ -783,7 +783,8 @@ int main(int argc, char **argv)
     }
 
     if (argc > 4) {
-        for (int j = 4; j < argc; j++) {
+        int j;
+        for (j = 4; j < argc; j++) {
             int moreargs = j+1 < argc;
 
             if (!strcmp(argv[j],"--use-triangles") && moreargs) {
