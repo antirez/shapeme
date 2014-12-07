@@ -835,7 +835,11 @@ int main(int argc, char **argv)
     state.absbestdiff = bestdiff = 100;
 
     /* Load the binary file if any. */
-    if (!opt_restart) loadBinary(argv[2],best);
+    if (!opt_restart) {
+        loadBinary(argv[2],best);
+    } else {
+        best->inuse = state.max_shapes_incremental;
+    }
     absbest->inuse = best->inuse;
     memcpy(absbest->triangles,best->triangles,
         sizeof(struct triangle)*best->count);
