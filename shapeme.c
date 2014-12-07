@@ -402,7 +402,7 @@ void randomsmalltriangle(struct triangle *r, int width, int height, int delta) {
         r->type = TYPE_CIRCLE;
         r->u.c.x1 = x;
         r->u.c.y1 = y;
-        r->u.c.radius = delta;
+        r->u.c.radius = randbetween(1,delta);
     }
     r->r = random()%256;
     r->g = random()%256;
