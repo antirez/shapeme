@@ -45,7 +45,7 @@
 int opt_use_triangles = 1;
 int opt_use_circles = 0;
 int opt_restart = 0;
-int opt_mutation_rate = 100;
+int opt_mutation_rate = 200;
 
 /* The global state defines the global state we save and restore
  * in addition to the best candidate. */
@@ -723,7 +723,7 @@ void showHelp(char *progname) {
         "--use-circles     <0 or 1> default: 0.\n"
         "--max-shapes      <count> default: 64.\n"
         "--initial-shapes  <count> default: 1.\n"
-        "--mutation-rate   <count> From 0 to 1000, default: 100\n"
+        "--mutation-rate   <count> From 0 to 1000, default: 200\n"
         "--restart         Don't load the old state at startup.\n"
         "--help            Just show this help.\n"
         ,progname);
