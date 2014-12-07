@@ -41,20 +41,11 @@
 #define MINALPHA 10
 #define MAXALPHA 90
 
-/* Probability of different mutations, expressed as 1 time every N iteartion.
- * For instance if the value is "40" it means that 1 time every 40 times on
- * average the mutation will be performed. */
-#define MUTATION_RANDMOVE_PROB 40
-#define MUTATION_MEDMOVE_PROB 40
-#define MUTATION_SMALLMOVE_PROB 40
-#define MUTATION_RANDCOLOR_PROB 40
-#define MUTATION_COLORMOVE_PROB 40
-#define MUTATION_RANDALPHA_PROB 40
-
 /* Configurable options. */
 int opt_use_triangles = 1;
 int opt_use_circles = 0;
 int opt_restart = 0;
+int opt_mutation_rate = 100;
 
 /* The global state defines the global state we save and restore
  * in addition to the best candidate. */
@@ -429,24 +420,22 @@ void randomsmalltriangle(struct triangle *r, int width, int height, int delta) {
 
 /* Apply a random mutation to the specified triangle/circle. */
 void mutatetriangle(struct triangle *t, int width, int height) {
-    if (rand() % MUTATION_RANDMOVE_PROB == 0) {
+    int choice = random() % 6;
+
+    if (choice == 0) {
         setRandomVertexes(t,width,height);
         normalize(t,width,height);
-    }
-    if (rand() % MUTATION_MEDMOVE_PROB == 0) {
+    } else if (choice == 1) {
         moveVertexes(t,20);
         normalize(t,width,height);
-    }
-    if (rand() % MUTATION_SMALLMOVE_PROB == 0) {
+    } else if (choice == 2) {
         moveVertexes(t,5);
         normalize(t,width,height);
-    }
-    if (rand() % MUTATION_RANDCOLOR_PROB == 0) {
+    } else if (choice == 3) {
         t->r = random()%256;
         t->g = random()%256;
         t->b = random()%256;
-    }
-    if (rand() % MUTATION_COLORMOVE_PROB == 0) {
+    } else if (choice == 4) {
         int r,g,b;
 
         r = t->r + randbetween(-5,5);
@@ -461,8 +450,7 @@ void mutatetriangle(struct triangle *t, int width, int height) {
         t->r = r;
         t->g = g;
         t->b = b;
-    }
-    if (rand() % MUTATION_RANDALPHA_PROB == 0) {
+    } else if (choice == 5) {
         t->alpha = randbetween(MINALPHA,MAXALPHA);
     }
 }
@@ -656,7 +644,7 @@ void mutatetriangles(struct triangles *rs, int count, int width, int height) {
     /* Mutate every single triangle. */
     for (j = 0; j < count; j++) {
         struct triangle *r = &rs->triangles[random()%rs->inuse];
-        mutatetriangle(r,width,height);
+        if (random() % 1000 < opt_mutation_rate) mutatetriangle(r,width,height);
     }
 }
 
@@ -731,10 +719,11 @@ void showHelp(char *progname) {
     fprintf(stderr,
         "Usage: %s <filename.png> <filename.bin> <filename.svg> [options]\n"
         "\n"
-        "--use-triangles   <0 or 1> (default: 1).\n"
-        "--use-circles     <0 or 1> (default: 0).\n"
-        "--max-shapes      <count> (default: 64).\n"
-        "--initial-shapes  <count> (default: 1).\n"
+        "--use-triangles   <0 or 1> default: 1.\n"
+        "--use-circles     <0 or 1> default: 0.\n"
+        "--max-shapes      <count> default: 64.\n"
+        "--initial-shapes  <count> default: 1.\n"
+        "--mutation-rate   <count> From 0 to 1000, default: 100\n"
         "--restart         Don't load the old state at startup.\n"
         "--help            Just show this help.\n"
         ,progname);
@@ -778,6 +767,8 @@ int main(int argc, char **argv)
                 state.max_shapes = atoi(argv[++j]);
             } else if (!strcmp(argv[j],"--initial-shapes") && moreargs) {
                 state.max_shapes_incremental = atoi(argv[++j]);
+            } else if (!strcmp(argv[j],"--mutation-rate") && moreargs) {
+                opt_mutation_rate = atoi(argv[++j]);
             } else if (!strcmp(argv[j],"--restart")) {
                 opt_restart = 1;
             } else if (!strcmp(argv[j],"--help")) {
@@ -791,9 +782,10 @@ int main(int argc, char **argv)
     }
 
     /* Sanity check. */
-    if (state.max_shapes_incremental > state.max_shapes) {
+    if (state.max_shapes_incremental > state.max_shapes)
         state.max_shapes = state.max_shapes_incremental;
-    }
+    if (opt_mutation_rate > 1000)
+        opt_mutation_rate = 1000;
 
     /* Load the PNG in memory. */
     fp = fopen(argv[1],"rb");
