@@ -649,11 +649,12 @@ void mutatetriangles(struct triangles *rs, int count, int width, int height) {
 }
 
 /* Save a set of triangles as SVG. */
-void saveSvg(char *filename,struct triangles *triangles) {
+void saveSvg(char *filename,struct triangles *triangles, int width, int height) {
     FILE *fp = fopen(filename,"w");
     int j;
 
     fprintf(fp,"<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg width=\"100%%\" height=\"100%%\" style=\"background-color:#000000;\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n");
+    fprintf(fp,"<polygon points=\"0,0 %d,0 %d,%d 0,%d\" style=\"fill:#000000;stroke:#000000;stroke-width:0;fill-opacity:1;\"/>\n",width-1,width-1,height-1,height-1);
     for(j=0;j<triangles->inuse;j++) {
         struct triangle *t = &triangles->triangles[j];
         if (t->type == TYPE_TRIANGLE) {
@@ -903,7 +904,7 @@ int main(int argc, char **argv)
         /* From time to time save the current state into a binary save
          * and produce an SVG of the current solution. */
         if ((state.generation % 100) == 0) {
-            saveSvg(argv[3],absbest);
+            saveSvg(argv[3],absbest,width,height);
             saveBinary(argv[2],absbest);
         }
     }
