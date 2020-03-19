@@ -38,8 +38,8 @@
 #define TYPE_TRIANGLE 0
 #define TYPE_CIRCLE 1
 
-#define MINALPHA 10
-#define MAXALPHA 90
+#define MINALPHA 1
+#define MAXALPHA 100
 
 /* Configurable options. */
 int opt_use_triangles = 1;
@@ -79,42 +79,53 @@ struct triangles {
 };
 
 /* SDL initialization function. */
-static SDL_Surface *sdlInit(int width, int height, int fullscreen) {
-    int flags = SDL_SWSURFACE;
-    SDL_Surface *screen;
+static SDL_Texture *sdlInit(int width, int height, int fullscreen, SDL_Renderer **rp) {
+    int flags = SDL_WINDOW_OPENGL;
+    SDL_Window *screen;
+    SDL_Renderer *renderer;
+    SDL_Texture *texture;
 
-    if (fullscreen) flags |= SDL_FULLSCREEN;
+    if (fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
     if (SDL_Init(SDL_INIT_VIDEO) == -1) {
         fprintf(stderr, "SDL Init error: %s\n", SDL_GetError());
         return NULL;
     }
     atexit(SDL_Quit);
-    screen = SDL_SetVideoMode(width,height,24,flags);
+    screen = SDL_CreateWindow("Shapeme",
+                              SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              width,height,flags);
     if (!screen) {
-        fprintf(stderr, "Can't set the video mode: %s\n", SDL_GetError());
+        fprintf(stderr, "Can't create SDL window: %s\n", SDL_GetError());
         return NULL;
     }
-    return screen;
+
+    renderer = SDL_CreateRenderer(screen,-1,0);
+    if (!renderer) {
+        fprintf(stderr, "Can't create SDL renderer: %s\n", SDL_GetError());
+        return NULL;
+    }
+
+    texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB24,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                width,height);
+    if (!texture) {
+        fprintf(stderr, "Can't create SDL texture: %s\n", SDL_GetError());
+        return NULL;
+    }
+    *rp = renderer;
+    return texture;
 }
 
 /* Show a raw RGB image on the SDL screen. */
-static void sdlShowRgb(SDL_Surface *screen, unsigned char *fb, int width,
+static void sdlShowRgb(SDL_Texture *texture, SDL_Renderer *renderer, unsigned char *fb, int width,
         int height)
 {
-    unsigned char *s, *p = fb;
-    int y,x;
-
-    for (y = 0; y < height; y++) {
-        s = screen->pixels+y*(screen->pitch);
-        for (x = 0; x < width; x++) {
-            s[0] = p[2];
-            s[1] = p[1];
-            s[2] = p[0];
-            s += 3;
-            p += 3;
-        }
-    }
-    SDL_UpdateRect(screen, 0, 0, width-1, height-1);
+    (void)height;
+    SDL_UpdateTexture(texture,NULL,fb,width*3);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
 }
 
 /* Minimal SDL event processing, just a few keys to exit the program. */
@@ -736,7 +747,8 @@ int main(int argc, char **argv)
     FILE *fp;
     int width, height, alpha;
     unsigned char *image, *fb;
-    SDL_Surface *screen;
+    SDL_Texture *texture;
+    SDL_Renderer *renderer;
     struct triangles *triangles, *best, *absbest;
     long long diff;
     float percdiff, bestdiff;
@@ -803,7 +815,7 @@ int main(int argc, char **argv)
     fclose(fp);
 
     /* Initialize SDL and allocate our arrays of triangles. */
-    screen = sdlInit(width,height,0);
+    texture = sdlInit(width,height,0,&renderer);
     fb = malloc(width*height*3);
     triangles = mkRandomtriangles(state.max_shapes,width,height);
     best = mkRandomtriangles(state.max_shapes,width,height);
@@ -823,9 +835,9 @@ int main(int argc, char **argv)
     /* Show the current evolved image and the real image for one scond each. */
     memset(fb,0,width*height*3);
     drawtriangles(fb,width,height,best);
-    sdlShowRgb(screen,fb,width,height);
+    sdlShowRgb(texture,renderer,fb,width,height);
     sleep(1);
-    sdlShowRgb(screen,image,width,height);
+    sdlShowRgb(texture,renderer,image,width,height);
     sleep(1);
 
     /* Evolve the current solution using simulated annealing. */
@@ -897,7 +909,7 @@ int main(int argc, char **argv)
                 state.temperature);
 
             bestdiff = percdiff;
-            sdlShowRgb(screen,fb,width,height);
+            sdlShowRgb(texture,renderer,fb,width,height);
         }
         processSdlEvents();
 
