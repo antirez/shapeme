@@ -29,8 +29,8 @@ How to build?
 
 There is a terrible Makefile. Try `make`... It needs:
 
-1. The PNG lib.
-2. SDL.
+1. The PNG lib (on Debian/Ubuntu: `libpng-dev`)
+2. SDL2 (on Debian/Ubuntu: `libsdl2-dev`)
 
 How to run the program?
 ---
@@ -42,3 +42,12 @@ Basic usage using the example image:
 For additional options just run the program without args, it will print some help.
 
 Have fun!
+
+Errors?
+---
+
+If you get the error:
+
+    X Error of failed request:  BadValue (integer parameter out of range for operation)
+
+then adding your user to the `video` group in /etc/group and rebooting may work.
